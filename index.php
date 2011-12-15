@@ -18,10 +18,12 @@ require_once('game/Score.php');
 
 try {
     // Number of runs
-    $iterations = 5;
+    $iterations = 10;
     
     // Max num of strategies per strategy
-    $countPerStrat = 30;    
+    $maxStartCountPerStrategy = 5;    
+    
+    $strategyCount = rand(1, $maxStartCountPerStrategy);
 
     // Load strats
     $strategies = Loader::load();
@@ -34,12 +36,12 @@ try {
 
     // Set random tweak factors
     $game->buildPool(array(
-        'TitTat'       => rand(1, $countPerStrat),
-        'TitForTat'    => rand(1, $countPerStrat),
-        'AlwaysCoop'   => rand(1, $countPerStrat),
-        'AlwaysDefect' => rand(1, $countPerStrat),
-        'Grudger'      => rand(1, $countPerStrat),
-        'ReverseTitTat'=> rand(1, $countPerStrat)
+        'TitTat'       => $strategyCount,
+        'TitForTat'    => $strategyCount,
+        'AlwaysCoop'   => $strategyCount ,
+        'AlwaysDefect' => $strategyCount,
+        'Grudger'      => $strategyCount,
+        'ReverseTitTat'=> $strategyCount
     ));
 
     // $game->showWorld();
@@ -50,7 +52,7 @@ try {
     $game->run($iterations);
     
     // Display latest iteration
-    $game->showWorld(4);
+    $game->showWorld();
     
     // Display all :)
     /*
