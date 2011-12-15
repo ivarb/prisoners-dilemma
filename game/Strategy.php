@@ -8,17 +8,24 @@ interface Interface_Strategy
 abstract class Strategy
 {
     private $id;
+    private $color;
     private $score = 0;
     private $opponents  = array();
 
     final public function __construct()
     {
         $this->generateId();
+        $this->generateColor();
     }
 
     final public function getId()
     {
         return $this->id;
+    }
+    
+    final public function getColor()
+    {
+        return '#' . $this->color;
     }
 
     final public function __clone()
@@ -52,6 +59,11 @@ abstract class Strategy
     private function generateId()
     {
         $this->id = get_class($this) . '_' . uniqid(__CLASS__);
+    }
+    
+    private function generateColor()
+    {
+        $this->color  = substr(md5(get_class($this)), -6);
     }
 
     final protected function getHistory(Interface_Strategy $opponent)

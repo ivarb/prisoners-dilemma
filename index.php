@@ -18,7 +18,10 @@ require_once('game/Score.php');
 
 try {
     // Number of runs
-    $iterations = 200;
+    $iterations = 5;
+    
+    // Max num of strategies per strategy
+    $countPerStrat = 30;    
 
     // Load strats
     $strategies = Loader::load();
@@ -27,26 +30,48 @@ try {
     }
 
     // Setup game
-    $game = new Game($strategies);
-
-    $countPerStrat = 50;
+    $game = new Game($strategies);    
 
     // Set random tweak factors
     $game->buildPool(array(
-        'TitTat'       => rand(1,$countPerStrat),
-        'TitForTat'    => rand(1,$countPerStrat),
-        'AlwaysCoop'   => rand(1,$countPerStrat),
-        'AlwaysDefect' => rand(1,$countPerStrat),
-        'Grudger'      => rand(1,$countPerStrat),
-        'ReverseTitTat'=> rand(1,$countPerStrat)
+        'TitTat'       => rand(1, $countPerStrat),
+        'TitForTat'    => rand(1, $countPerStrat),
+        'AlwaysCoop'   => rand(1, $countPerStrat),
+        'AlwaysDefect' => rand(1, $countPerStrat),
+        'Grudger'      => rand(1, $countPerStrat),
+        'ReverseTitTat'=> rand(1, $countPerStrat)
     ));
 
     // $game->showWorld();
     $game->setMode('game');
-    // $game->setMode('life');
+    $game->setMode('life');
+    
+    // Start game
     $game->run($iterations);
-    $game->showWorld();
+    
+    // Display latest iteration
+    $game->showWorld(4);
+    
+    // Display all :)
+    /*
+    for ($i=0; $i < $game->getIteration(); $i++) {
+        $game->showWorld($i);
+    }
+    */
 
 } catch (Exception $e) {
     die('<hr>ERROR: ' . (string) $e);
 }
+?>
+
+<style type="text/css">
+.world {
+position:absolute;left:600px;width:400px;height:auto;
+padding:5px;
+}
+.strat {
+position:absolute;border:1px solid grey;margin:1px;vertical-align:middle;overflow:hidden;
+}
+.score {
+}
+</style>

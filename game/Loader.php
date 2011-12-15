@@ -30,7 +30,6 @@ class Loader
     {
         $objects = array();
         foreach ($files as $file) {
-            $full  = $dir . self::$dir . $file;
             $full  = $file;
             $class = ucfirst(substr($file, strlen(self::$dir), strpos($file, '.') - strlen(self::$dir)));
             if ($class && file_exists($full) && is_readable($full)) {
