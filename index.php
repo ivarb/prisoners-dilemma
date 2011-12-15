@@ -21,9 +21,8 @@ try {
     $iterations = 10;
     
     // Max num of strategies per strategy
-    $maxStartCountPerStrategy = 5;    
-    
-    $strategyCount = rand(1, $maxStartCountPerStrategy);
+    $maxStartCountPerStrategy = 10;        
+    $strategyCount            = rand(1, $maxStartCountPerStrategy);
 
     // Load strats
     $strategies = Loader::load();
@@ -32,16 +31,17 @@ try {
     }
 
     // Setup game
-    $game = new Game($strategies);    
+    $game = new Game($strategies);
 
     // Set random tweak factors
     $game->buildPool(array(
-        'TitTat'       => $strategyCount,
+        'TitTat'       => $strategyCount * 10,
         'TitForTat'    => $strategyCount,
-        'AlwaysCoop'   => $strategyCount ,
-        'AlwaysDefect' => $strategyCount,
-        'Grudger'      => $strategyCount,
-        'ReverseTitTat'=> $strategyCount
+        'AlwaysCoop'   => $strategyCount,
+        'AlwaysDefect' => $strategyCount / 2,
+        'Grudger'      => $strategyCount * 5,
+        'ReverseTitTat'=> $strategyCount,
+        'Random'       => $strategyCount
     ));
 
     // $game->showWorld();

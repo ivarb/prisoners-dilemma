@@ -8,7 +8,7 @@ class Score
     
     private static $scores = array(
         'life' => array(
-            'bd' => 1,
+            'bd' => 0,
             'bc' => 2,
             'pd' => 3,
             'od' => 0

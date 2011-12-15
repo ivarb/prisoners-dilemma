@@ -160,8 +160,12 @@ class Game
                     case 'life':
                         // Remove/clone this strat
                         if ($smScore <= 0) {
-                            echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . (string) $strategy . ' has died...<br />';
-                            $this->world[$x][$y] = false;
+                            if ($this->dies()) {
+                                echo    '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . (string) $strategy . ' has died...<br />';
+                                $this->world[$x][$y] = false;
+                            } else {
+                                echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . (string) $strategy . ' has survived defect!<br />';
+                            }
                         } else {
                             // Add clones to stage
                             $this->addClones($strategy, $smScore - 1);
@@ -169,8 +173,12 @@ class Game
 
                         // Remove/clone opp strat
                         if ($omScore <= 0) {
-                            echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . (string) $strategyOpponent['strategy'] . ' has died...<br />';
-                            $this->world[$strategyOpponent['x']][$strategyOpponent['y']] = false;
+                            if ($this->dies()) {
+                                echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . (string) $strategyOpponent['strategy'] . ' has died...<br />';
+                                $this->world[$strategyOpponent['x']][$strategyOpponent['y']] = false;
+                            } else {
+                                echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . (string) $strategyOpponent['strategy'] . ' has survived defect!<br />';
+                            }
                         } else {
                             $this->addClones($strategyOpponent['strategy'], $omScore - 1);                        
                         }
@@ -253,6 +261,11 @@ class Game
     public static function sortScore($a, $b)
     {
         return $a['score'] < $b['score'];
+    }
+    
+    private function dies()
+    {
+        return rand(0, 1) & 1;
     }
     
     private function addScore(Interface_Strategy $strategy, $score)
