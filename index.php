@@ -15,13 +15,14 @@ require_once('game/Loader.php');
 require_once('game/Game.php');
 require_once('game/Move.php');
 require_once('game/Score.php');
+require_once('game/World.php');
 
 try {
     // Number of runs
     $iterations = 10;
-    
+
     // Max num of strategies per strategy
-    $maxStartCountPerStrategy = 10;        
+    $maxStartCountPerStrategy = 10;
     $strategyCount            = rand(1, $maxStartCountPerStrategy);
 
     // Load strats
@@ -47,13 +48,13 @@ try {
     // $game->showWorld();
     $game->setMode('game');
     $game->setMode('life');
-    
+
     // Start game
     $game->run($iterations);
-    
+
     // Display latest iteration
     $game->showWorld();
-    
+
     // Display all :)
     /*
     for ($i=0; $i < $game->getIteration(); $i++) {

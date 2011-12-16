@@ -22,7 +22,7 @@ abstract class Strategy
     {
         return $this->id;
     }
-    
+
     final public function getColor()
     {
         return '#' . $this->color;
@@ -53,6 +53,14 @@ abstract class Strategy
         return get_class($this) . ' (' . $this->getId() . ')';
     }
 
+    final public function getEmptySpot(World $world, $ownX, $ownY)
+    {
+        if (method_exists($this, 'getStrategySpot')) {
+            return $this->getStrategySpot($world, $ownX, $ownY);
+        }
+        return false;
+    }
+
     public function preMove(){}
     public function postMove(){}
 
@@ -60,7 +68,7 @@ abstract class Strategy
     {
         $this->id = get_class($this) . '_' . uniqid(__CLASS__);
     }
-    
+
     private function generateColor()
     {
         $this->color  = substr(md5(get_class($this)), -6);

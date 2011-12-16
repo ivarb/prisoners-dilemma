@@ -2,26 +2,29 @@
 class Game
 {
     private $mode = 'game';
-    
+
     private $strategies;
     private $tweakFact;
     private $pool;
     private $world;
-    
+
     private $scores = array();
     private $roundWorlds = array();
 
     private $pool_count = 0;
-    private $world_len  = 0;
 
     private $it_cur     = 0;
-    private $it_max     = 10;       
-    
+    private $it_max     = 10;
+
     public function __construct(array $strategies = array())
     {
-        if (count($strategies)) {
+        $stratCount = count($strategies);
+        if ($stratCount) {
+            echo 'Game crafted with ' . $stratCount . ' different strategies<br />';
             $this->setStrategies($strategies);
         }
+
+        $this->world = new World();
     }
 
     final public function setStrategies(array $strategies)
@@ -39,7 +42,7 @@ class Game
 
         // Store tweak fact
         $this->tweakFact = $stratTweakFactors;
-        
+
         $strats = array();
         foreach($this->strategies as $strategy) {
             $name = get_class($strategy);
@@ -51,14 +54,14 @@ class Game
             for ($i=0; $i < $num; $i++) {
                 $strats[] = clone($strategy);
             }
-        }                
-        
+        }
+
         // Build pool
         $this->stratToPool($strats);
-        
-        // Achieve this size
-        $gridSize  = $this->getGridSize($this->pool_count);        
-               
+
+        // Retreive this size
+        $gridSize = $this->world->getGridSize($this->pool_count);
+
         // Add randomeness
         shuffle($this->pool);
 
@@ -66,7 +69,7 @@ class Game
         $this->populateWorld($gridSize);
 
         // Recalc world
-        $this->recalcWorldLength();
+        $this->world->calcWorldLength();
 
         echo 'World build and populated with ' . $this->pool_count . ' strategies<br />';
     }
@@ -103,12 +106,11 @@ class Game
         echo '<h4>Round ' . $this->it_cur .'</h4>';
 
         // Store round worlds
-        $this->roundWorlds[$this->it_cur] = $this->world;
-        
+        $world = $this->world->getWorld();
+        $this->roundWorlds[$this->it_cur] = serialize($world);
+
         // Loop
         $roundData = array('played' => array());
-        $world     = $this->world;
-        // echo '<pre>';var_dump($world);
         foreach ($world as $x => $_y) {
             foreach ($_y as $y => $strategy) {
                 // Empty spot
@@ -143,11 +145,11 @@ class Game
 
                 echo '<br />  '. (string) $strategy . ' does move ' . (string) $sm .' - Score: '. $smScore . '<br />';
                 echo '  '. (string) $strategyOpponent['strategy'] . ' does move ' . (string) $om . ' - Score: '. $omScore . '<br />';
-                
+
                 // Add scores
                 $strategy->addScore($smScore);
                 $strategyOpponent['strategy']->addScore($omScore);
-                
+
                 $this->addScore($strategy, $smScore)
                      ->addScore($strategyOpponent['strategy'], $omScore);
 
@@ -162,25 +164,25 @@ class Game
                         if ($smScore <= 0) {
                             if ($this->dies()) {
                                 echo    '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . (string) $strategy . ' has died...<br />';
-                                $this->world[$x][$y] = false;
+                                $this->world->setCoordVal($x, $y, false);
                             } else {
                                 echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . (string) $strategy . ' has survived defect!<br />';
                             }
                         } else {
                             // Add clones to stage
-                            $this->addClones($strategy, $smScore - 1);
+                            $this->addClones($strategy, $smScore, $x, $y);
                         }
 
                         // Remove/clone opp strat
                         if ($omScore <= 0) {
                             if ($this->dies()) {
                                 echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . (string) $strategyOpponent['strategy'] . ' has died...<br />';
-                                $this->world[$strategyOpponent['x']][$strategyOpponent['y']] = false;
+                                $this->world->setCoordVal($strategyOpponent['x'], $strategyOpponent['y'], false);
                             } else {
                                 echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . (string) $strategyOpponent['strategy'] . ' has survived defect!<br />';
                             }
                         } else {
-                            $this->addClones($strategyOpponent['strategy'], $omScore - 1);                        
+                            $this->addClones($strategyOpponent['strategy'], $omScore, $x, $y);
                         }
                         break;
 
@@ -192,9 +194,10 @@ class Game
                 unset($strategy,$strategyOpponent,$sm,$om);
             }
         }
+        // Re-store world
         unset($world,$roundData);
 
-        $this->recalcWorldLength();
+        $this->world->calcWorldLength();
         return true;
     }
 
@@ -212,26 +215,26 @@ class Game
     {
         $this->mode = (string) $mode;
     }
-        
+
     public function showWorld($iteration = false)
     {
         static $calls = 0;
         $calls++;
-        
+
         $it = $this->it_cur;
         if ($iteration) {
             $it = $iteration;
         }
-        $world = $this->roundWorlds[$it];
+        $world = unserialize($this->roundWorlds[$it]);
 
         echo '<div class="world" style="top:'.($calls == 1 ? 0 : $calls*200).'px;"><h4>The world after ' . $this->it_cur .' iterations</h4>';
 
         $w = 100;
-        foreach ($world as $x => $_y) {       
+        foreach ($world as $x => $_y) {
             $l = (( $x + 1 )* $w + 2) + 300;
-            foreach ($_y as $y => $strategy) {                
+            foreach ($_y as $y => $strategy) {
                 $t    = (( $y + 1 )* $w + 2);
-                
+
                 $name = '<ul>empty</ul>';
                 $f    = 'color:black;background-color:white;';
                 $score= '';
@@ -244,30 +247,30 @@ class Game
                 echo '<div class="strat" style="width:'.$w.'px;height:'.$w.'px;top:'.$t.'px;left:'.$l.'px;'.$f.'" id="">'.$x.','.$y.' '.$name.'<br />'.$score.'</div>';
             }
         }
-                
+
         // Sort scores
         $scores = $this->scores;
         usort($scores, array('Game', 'sortScore'));
-        
+
         echo '<div class="score"><h4>Scores (top first)</h4>';
         foreach($scores as $score) {
             echo str_pad((string) $score['score'], 10, ' ', STR_PAD_RIGHT) . " : " . (string) $score['strategy'] . '<br />';
         }
-        
+
         echo '</div><br clear="all"></div>';
-       
+
     }
-        
+
     public static function sortScore($a, $b)
     {
         return $a['score'] < $b['score'];
     }
-    
+
     private function dies()
     {
         return rand(0, 1) & 1;
     }
-    
+
     private function addScore(Interface_Strategy $strategy, $score)
     {
         $this->scores[$strategy->getId()] = array(
@@ -276,7 +279,7 @@ class Game
         );
         return $this;
     }
-    
+
     private function stratToPool($strategies = false)
     {
         $strats = $this->strategies;
@@ -285,14 +288,14 @@ class Game
         }
 
         foreach($strats as $strategy) {
-            $this->pool[] = clone($strategy);            
+            $this->pool[] = clone($strategy);
         }
 
         // How many?
         $this->pool_count = count($this->pool);
-        
-        // Calc this size
-        $gridSize  = $this->getGridSize($this->pool_count);
+
+        // Calc this size - make it 1 bigger for empty spots
+        $gridSize  = $this->world->getGridSize($this->pool_count) + 1;
         $gridItems = $gridSize * $gridSize;
         $countDiff = $gridItems - $this->pool_count;
 
@@ -302,63 +305,57 @@ class Game
             $this->pool_count++;
         }
     }
-    
+
     private function getMode()
     {
         return $this->mode;
-    }    
+    }
 
-    private function addClones(Interface_Strategy $strategy, $amount = 0)
+    private function addClones(Interface_Strategy $strategy, $amount = 0, $ownX, $ownY)
     {
         $amount = (int) $amount;
         if ($amount <= 1) {
             return;
-        }    
-        echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Adding '.$amount.' clones for strategy '. (string) $strategy;              
+        }
+        echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Adding '.$amount.' clones for strategy '. (string) $strategy;
         for($i=0; $i < $amount; $i++) {
-            // Got empty spot left?
-            $empty = $this->findEmptySpot();
-            if (is_array($empty)) {
-                list($x, $y) = $empty;
-            } else {
-                $x = $this->world_len; 
-                $y = 0; // Next row
-                
-                // Prep row
-                for($j=0; $j <= $this->world_len; $j++) {
-                    $this->world[$x][$j] = false;
-                }
+            unset($stratSpot, $randSpot, $x, $y);
+
+            // Spot by strategy
+            $stratSpot = $strategy->getEmptySpot($this->world, $ownX, $ownY);
+            if (is_array($stratSpot)) {
+                list($x, $y) = $stratSpot;
+                // Add strategy
+                $this->world->setCoordVal($x, $y, clone($strategy));
+                // Recalc
+                $this->world->calcWorldLength();
+                continue;
             }
-            
-            // Add strategy
-            $this->world[$x][$y] = clone($strategy);
-            
-            // Recalc
-            $this->recalcWorldLength();
-        }               
+
+            // Got empty spot left?
+            $randSpot = $this->world->findRandomEmptySpot();
+            if (is_array($randSpot)) {
+                list($x, $y) = $randSpot;
+
+                // Add strategy
+                $this->world->setCoordVal($x, $y, clone($strategy));
+
+                // Recalc
+                $this->world->calcWorldLength();
+                continue;
+            }
+
+            $x = $this->world->getLength();
+
+            // Prep row
+            $this->world->buildRow($x);
+
+            // Add strategy once to new row
+            $this->world->setCoordVal($x, 0, clone($strategy));
+        }
         echo '<br />';
     }
-    
-    private function findEmptySpot()
-    {
-        $x = $y = $this->getGridSize($this->world_len * $this->world_len);
-        for($px=0; $px<$x; $px++) {
-            for($py=0; $py<$y; $py++) {
-                if (!$this->world[$px][$py] instanceof Interface_Strategy) {
-                    return array($px, $py);
-                }
-            }
-        }    
-    }
 
-    private function getGridSize($size)
-    {
-        if ($size) {
-            return (int) ceil(sqrt($size));
-        }
-        return 0;
-    }
-    
     private function populateWorld($gridSize)
     {
         $x = $y = $gridSize;
@@ -367,7 +364,7 @@ class Game
         $pool = $this->pool;
         for($px=0; $px<$x; $px++) {
             for($py=0; $py<$y; $py++) {
-                $this->world[$px][$py] = array_pop($pool);
+                $this->world->setCoordVal($px, $py, array_pop($pool));
             }
         }
         unset($pool);
@@ -375,15 +372,15 @@ class Game
 
     private function getRoundOpponent($world, $x, $y, $strategy, $roundData)
     {
-        $max  = $this->world_len * $this->world_len;
-        $xPos = $yPos = range(0, $this->world_len - 1);
+        $max  = $this->world->getLength() * $this->world->getLength();
+        $xPos = $yPos = range(0, $this->world->getLength() - 1);
         shuffle($xPos);
         shuffle($yPos);
 
-        for($i=0; $i < $this->world_len; $i++) {
+        for($i=0; $i < $this->world->getLength(); $i++) {
             $ox = $xPos[$i];
 
-            for($j=0; $j < $this->world_len; $j++) {
+            for($j=0; $j < $this->world->getLength(); $j++) {
                 $oy = $yPos[$j];
 
                 // echo '      {Testing opponent at pos ' . $ox .', '.$oy.' } <br />';
@@ -402,19 +399,14 @@ class Game
         }
     }
 
-    private function recalcWorldLength()
-    {
-        $this->world_len = (int) count($this->world);
-    }
-
     private function getPosition()
     {
-        return array(rand(0, $this->world_len - 1), rand(0, $this->world_len - 1));
+        return array(rand(0, $this->world->getLength() - 1), rand(0, $this->world->getLength() - 1));
     }
 
     private function getWorld()
     {
-        return $this->world;
+        return $this->world->getWorld();
     }
 
     private function getPool()

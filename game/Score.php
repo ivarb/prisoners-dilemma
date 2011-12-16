@@ -5,10 +5,10 @@ class Score
     const BOTH_COOP   = 'bc';
     const PL_DEFECT   = 'pd';
     const OP_DEFECT   = 'od';
-    
+
     private static $scores = array(
         'life' => array(
-            'bd' => 0,
+            'bd' => 1,
             'bc' => 2,
             'pd' => 3,
             'od' => 0
@@ -17,7 +17,7 @@ class Score
             'bd' => -10,
             'bc' => 30,
             'pd' => 50,
-            'od' => -20        
+            'od' => -20
         )
     );
 
