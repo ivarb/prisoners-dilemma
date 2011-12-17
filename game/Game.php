@@ -34,7 +34,7 @@ class Game
         }
     }
 
-    final public function buildPool(array $stratTweakFactors = array())
+    final public function buildPool(array $stratTweakFactors = array(), $random = true)
     {
         if (!count($this->strategies)) {
             throw new Exception('No strategies set');
@@ -63,7 +63,9 @@ class Game
         $gridSize = $this->world->getGridSize($this->pool_count);
 
         // Add randomeness
-        shuffle($this->pool);
+        if ($random === true) {
+            shuffle($this->pool);
+        }
 
         // Polulate world
         $this->populateWorld($gridSize);
@@ -215,6 +217,21 @@ class Game
     {
         $this->mode = (string) $mode;
     }
+    
+    final public function store($dir = 'runs/')
+    {
+        $name = date('Ymd_His') . '_' . uniqid() . '.run';
+        if (is_dir($dir) && is_writeable($dir)) {
+            file_put_contents($dir . $name, serialize($this));
+        }
+    }
+    
+    public static function load($name, $dir = 'runs/')
+    {
+        if (is_dir($dir) && file_exists($dir . $name) && is_readable($dir.$name)) {
+            return unserialize(file_get_contents($dir.$name));
+        }    
+    }
 
     public function showWorld($iteration = false)
     {
@@ -229,36 +246,57 @@ class Game
 
         echo '<div class="world" style="top:'.($calls == 1 ? 0 : $calls*200).'px;"><h4>The world after ' . $this->it_cur .' iterations</h4>';
 
+        // Percentage per strat type
+        $percs = array();
+        $total = 0;
+        
         $w = 100;
         foreach ($world as $x => $_y) {
             $l = (( $x + 1 )* $w + 2) + 300;
-            foreach ($_y as $y => $strategy) {
+            foreach ($_y as $y => $strategy) {                                         
                 $t    = (( $y + 1 )* $w + 2);
 
                 $name = '<ul>empty</ul>';
                 $f    = 'color:black;background-color:white;';
                 $score= '';
-
                 if (is_object($strategy)) {
                     $f    = 'color:white;background-color:'.$strategy->getColor().';';
                     $name = get_class($strategy);
                     $score= 'Score: ' . $strategy->getScore();
+                    
+                    if (!isset($percs[$name])) {
+                        $percs[$name] = array('score' => 0, 'color' => $strategy->getColor());
+                    } else {
+                        $percs[$name]['score'] += 1;
+                        $total++;
+                    }
                 }
                 echo '<div class="strat" style="width:'.$w.'px;height:'.$w.'px;top:'.$t.'px;left:'.$l.'px;'.$f.'" id="">'.$x.','.$y.' '.$name.'<br />'.$score.'</div>';
             }
         }
 
-        // Sort scores
+        // Show percentage
+        
+        $stratPercs = array();
+        echo '<div class="score"><h4>Population percentage per strategy</h4>';
+        uasort($percs, array('Game', 'sortScore'));
+        foreach ($percs as $name => $strat) {        
+            $stratPercs[$name] = round(($strat['score'] / $total) * 100, 1);
+            $w = (int) (400 * ($stratPercs[$name] / 100));
+            echo '<div class="stratPerc" style="background-color:'.$strat['color'].';padding:5px;color:black;margin:1px;width:'.$w.'px;height:20px;"><div style="width:300px;position:relative;top:0;left:0;">'.$name.' '. $stratPercs[$name] . '%</div></div>';
+        }
+        
+        // Sort scores        
         $scores = $this->scores;
         usort($scores, array('Game', 'sortScore'));
+        $scores = array_slice($scores, 0, 20, true);        
 
-        echo '<div class="score"><h4>Scores (top first)</h4>';
+        echo '<div class="score"><h4>Top 20 Scores</h4>';
         foreach($scores as $score) {
             echo str_pad((string) $score['score'], 10, ' ', STR_PAD_RIGHT) . " : " . (string) $score['strategy'] . '<br />';
         }
 
         echo '</div><br clear="all"></div>';
-
     }
 
     public static function sortScore($a, $b)
@@ -345,10 +383,9 @@ class Game
                 continue;
             }
 
-            $x = $this->world->getLength();
-
             // Prep row
-            $this->world->buildRow($x);
+            unset($x,$y);            
+            list($x, $y) = $this->world->buildRow($this->world->getLength(), rand(0,1));
 
             // Add strategy once to new row
             $this->world->setCoordVal($x, 0, clone($strategy));

@@ -18,12 +18,22 @@ require_once('game/Score.php');
 require_once('game/World.php');
 
 try {
+    // Load?
+    if (isset($_GET['load_id'])) {
+        $id   = addslashes(trim(strip_tags($_GET['load_id'])));
+        $f    = $id .'.run';
+        $game = Game::load($f);
+        if (!$game instanceof Game) {
+            throw new Exception('Cannot load '. $id);
+        }
+        $game->showWorld();
+    }
+    
     // Number of runs
     $iterations = 10;
 
     // Max num of strategies per strategy
-    $maxStartCountPerStrategy = 10;
-    $strategyCount            = rand(1, $maxStartCountPerStrategy);
+    $strategyCount = 10;
 
     // Load strats
     $strategies = Loader::load();
@@ -36,14 +46,14 @@ try {
 
     // Set random tweak factors
     $game->buildPool(array(
-        'TitTat'       => $strategyCount * 10,
+        'TitTat'       => $strategyCount * 6,
         'TitForTat'    => $strategyCount,
         'AlwaysCoop'   => $strategyCount,
-        'AlwaysDefect' => $strategyCount / 2,
-        'Grudger'      => $strategyCount * 5,
+        'AlwaysDefect' => $strategyCount,
+        'Grudger'      => $strategyCount * 1.5,
         'ReverseTitTat'=> $strategyCount,
         'Random'       => $strategyCount
-    ));
+    ), false);
 
     // $game->showWorld();
     $game->setMode('game');
@@ -61,6 +71,9 @@ try {
         $game->showWorld($i);
     }
     */
+    
+    // Store game in runs dir
+    $game->store();
 
 } catch (Exception $e) {
     die('<hr>ERROR: ' . (string) $e);

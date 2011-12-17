@@ -1,9 +1,9 @@
 <?php
 class World
 {
-    private $world  = array();
-    private $length = 0;
-    private $empties;
+    private $world   = array();
+    private $length  = 0;
+    private $empties = array();    
 
     public function setWorld(array $w)
     {
@@ -26,8 +26,8 @@ class World
         $this->world[$x][$y] = $val;
 
         // Remove empty
-        if (isset($this->empties[$x . '-' . $y])) {
-            unset($this->empties[$x . '-' . $y]);
+        if (array_key_exists($this->emptiesHash($x,$y), $this->empties)) {
+            unset($this->empties[$this->emptiesHash($x,$y)]);
         }
     }
 
@@ -52,16 +52,26 @@ class World
         return $this->length;
     }
 
-    public function buildRow($x)
+    public function buildRow($size, $xAs = 1)
     {
         // Recalc
         $this->calcWorldLength();
+        
+        $x = $y = false;
 
         // Set empties
-        for($j=0; $j <= $x; $j++) {
-            if (!$this->getCoordVal($x, $j) instanceof Interface_Strategy) {
-                echo $x . ' - ' . $j.'<br />';
-                $this->setCoordVal($x, $j, false);
+        for($i=0; $i <= $size; $i++) {
+            $_x = $size; $_y = $i;
+            if ((bool) $xAs === false) {
+                $_x = $i; $_y = $size;
+            }
+            if (!$this->getCoordVal($_x, $_y) instanceof Interface_Strategy) {                        
+                $this->setCoordVal($_x, $_y, false);
+                
+                if ($x === false && $y === false) {
+                    $x = $_x;
+                    $y = $_y;
+                }
             }
         }
 
@@ -84,7 +94,7 @@ class World
             for($px=0; $px<$x; $px++) {
                 for($py=0; $py<$y; $py++) {
                     if (!$this->getCoordVal[$px][$py] instanceof Interface_Strategy) {
-                        $this->empties[$x . '-' . $y] = array($px, $py);
+                        $this->empties[$this->emptiesHash($x,$y)] = array($px, $py);
                     }
                 }
             }
@@ -130,6 +140,11 @@ class World
         $this->world[$x][$y] = false;
 
         // Store empty spot
-        $this->empties[md5($x.'-'.$y)] = array($x,$y);
+        $this->empties[$this->emptiesHash($x, $y)] = array($x,$y);
+    }   
+    
+    private function emptiesHash($x, $y)
+    {
+        return md5($x .'-'. $y);
     }
 }
