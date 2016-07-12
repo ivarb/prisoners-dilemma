@@ -1,4 +1,21 @@
 <?php
+// Constants
+const MODE = 'life';
+const ITERATIONS = 10;
+const STRAT_COUNT = 10;
+const STRAT_FACTOR = null; // integer or null
+const STRATS = [
+    'TitTat',
+    'TitForTat',
+    'AlwaysCoop',
+    'AlwaysDefect',
+    'Grudger',
+    'ReverseTitTat',
+    'Random',
+];
+const STRAT_RAND = false;
+
+// =============================================================================
 echo '<h3>Prisoners Dillemma</h3><hr>';
 
 set_include_path(
@@ -28,12 +45,6 @@ try {
         }
         $game->showWorld();
     }
-    
-    // Number of runs
-    $iterations = 10;
-
-    // Max num of strategies per strategy
-    $strategyCount = 10;
 
     // Load strats
     $strategies = Loader::load();
@@ -44,23 +55,19 @@ try {
     // Setup game
     $game = new Game($strategies);
 
-    // Set random tweak factors
-    $game->buildPool(array(
-        'TitTat'       => $strategyCount * 6,
-        'TitForTat'    => $strategyCount,
-        'AlwaysCoop'   => $strategyCount,
-        'AlwaysDefect' => $strategyCount,
-        'Grudger'      => $strategyCount * 1.5,
-        'ReverseTitTat'=> $strategyCount,
-        'Random'       => $strategyCount
-    ), false);
+    // Build strategy pool
+    $pool = [];
+    foreach (STRATS as $strat) {
+        $f = is_null(STRAT_FACTOR) ? 1 : (float) (rand(1, STRAT_FACTOR) / 10);
+        $pool[$strat] = (int) round(STRAT_COUNT * $f);
+    }
+    $game->buildPool($pool, STRAT_RAND);
 
-    // $game->showWorld();
-    $game->setMode('game');
-    $game->setMode('life');
+    // Set game mode
+    $game->setMode(MODE);
 
     // Start game
-    $game->run($iterations);
+    $game->run(ITERATIONS);
 
     // Display latest iteration
     $game->showWorld();
@@ -71,7 +78,7 @@ try {
         $game->showWorld($i);
     }
     */
-    
+
     // Store game in runs dir
     $game->store();
 

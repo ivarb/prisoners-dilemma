@@ -34,18 +34,22 @@ class Game
         }
     }
 
-    final public function buildPool(array $stratTweakFactors = array(), $random = true)
+    final public function buildPool(array $withStrats = array(), $random = true)
     {
         if (!count($this->strategies)) {
-            throw new Exception('No strategies set');
+            throw new Exception('No strategies found.');
         }
 
         // Store tweak fact
-        $this->tweakFact = $stratTweakFactors;
+        $this->tweakFact = $withStrats;
 
         $strats = array();
         foreach($this->strategies as $strategy) {
             $name = get_class($strategy);
+            if (!array_key_exists($name, $withStrats)) {
+                continue;
+            }
+
             $num  = 1;
             if (array_key_exists($name, $this->tweakFact) && is_numeric($this->tweakFact[$name])) {
                 $num = (int) $this->tweakFact[$name];
@@ -165,10 +169,10 @@ class Game
                         // Remove/clone this strat
                         if ($smScore <= 0) {
                             if ($this->dies()) {
-                                echo    '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . (string) $strategy . ' has died...<br />';
+                                echo    '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . (string) $strategy . ' <strong>has died</strong>...<br />';
                                 $this->world->setCoordVal($x, $y, false);
                             } else {
-                                echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . (string) $strategy . ' has survived defect!<br />';
+                                echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . (string) $strategy . ' has <strong>survived</strong> defect!<br />';
                             }
                         } else {
                             // Add clones to stage
@@ -190,6 +194,7 @@ class Game
 
                     default:
                     case 'game':
+                        // not yet implemented.
                         break;
                 }
 

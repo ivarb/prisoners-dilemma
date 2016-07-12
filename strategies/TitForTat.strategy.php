@@ -1,7 +1,6 @@
 <?php
 class TitForTat extends Strategy implements Interface_Strategy
 {
-
     // Returns the move;
     public function getMove($iteration, Interface_Strategy $opponent)
     {
