@@ -7,7 +7,8 @@ class Grudger extends Strategy implements Interface_Strategy
     public function getMove($iteration, Interface_Strategy $opponent)
     {
         $history = $this->getHistory($opponent);
-        if (!$history[$iteration - 1] instanceof Move) {
+        $k = $iteration - 1;
+        if (!isset($history[$k]) || !$history[$k] instanceof Move) {
             return new Move(Move::MOVE_COOP);
         }
 
@@ -17,7 +18,7 @@ class Grudger extends Strategy implements Interface_Strategy
         }
 
         // Last opps move
-        return $history[$iteration - 1];
+        return $history[$k];
     }
 
     public function postMove(Interface_Strategy $opponent, Move $move)

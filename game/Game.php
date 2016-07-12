@@ -217,7 +217,7 @@ class Game
     {
         $this->mode = (string) $mode;
     }
-    
+
     final public function store($dir = 'runs/')
     {
         $name = date('Ymd_His') . '_' . uniqid() . '.run';
@@ -225,12 +225,12 @@ class Game
             file_put_contents($dir . $name, serialize($this));
         }
     }
-    
+
     public static function load($name, $dir = 'runs/')
     {
         if (is_dir($dir) && file_exists($dir . $name) && is_readable($dir.$name)) {
             return unserialize(file_get_contents($dir.$name));
-        }    
+        }
     }
 
     public function showWorld($iteration = false)
@@ -249,11 +249,11 @@ class Game
         // Percentage per strat type
         $percs = array();
         $total = 0;
-        
+
         $w = 100;
         foreach ($world as $x => $_y) {
             $l = (( $x + 1 )* $w + 2) + 300;
-            foreach ($_y as $y => $strategy) {                                         
+            foreach ($_y as $y => $strategy) {
                 $t    = (( $y + 1 )* $w + 2);
 
                 $name = '<ul>empty</ul>';
@@ -263,7 +263,7 @@ class Game
                     $f    = 'color:white;background-color:'.$strategy->getColor().';';
                     $name = get_class($strategy);
                     $score= 'Score: ' . $strategy->getScore();
-                    
+
                     if (!isset($percs[$name])) {
                         $percs[$name] = array('score' => 0, 'color' => $strategy->getColor());
                     } else {
@@ -276,20 +276,20 @@ class Game
         }
 
         // Show percentage
-        
+
         $stratPercs = array();
         echo '<div class="score"><h4>Population percentage per strategy</h4>';
         uasort($percs, array('Game', 'sortScore'));
-        foreach ($percs as $name => $strat) {        
+        foreach ($percs as $name => $strat) {
             $stratPercs[$name] = round(($strat['score'] / $total) * 100, 1);
             $w = (int) (400 * ($stratPercs[$name] / 100));
             echo '<div class="stratPerc" style="background-color:'.$strat['color'].';padding:5px;color:black;margin:1px;width:'.$w.'px;height:20px;"><div style="width:300px;position:relative;top:0;left:0;">'.$name.' '. $stratPercs[$name] . '%</div></div>';
         }
-        
-        // Sort scores        
+
+        // Sort scores
         $scores = $this->scores;
         usort($scores, array('Game', 'sortScore'));
-        $scores = array_slice($scores, 0, 20, true);        
+        $scores = array_slice($scores, 0, 20, true);
 
         echo '<div class="score"><h4>Top 20 Scores</h4>';
         foreach($scores as $score) {
@@ -311,10 +311,13 @@ class Game
 
     private function addScore(Interface_Strategy $strategy, $score)
     {
-        $this->scores[$strategy->getId()] = array(
-            'strategy' => $strategy,
-            'score'    => $score + $this->scores[$strategy->getId()]['score']
-        );
+        if (isset($this->scores[$strategy->getId()])) {
+            $this->scores[$strategy->getId()] = array(
+                'strategy' => $strategy,
+                'score'    => $score + $this->scores[$strategy->getId()]['score']
+            );
+        }
+
         return $this;
     }
 
@@ -384,7 +387,7 @@ class Game
             }
 
             // Prep row
-            unset($x,$y);            
+            unset($x,$y);
             list($x, $y) = $this->world->buildRow($this->world->getLength(), rand(0,1));
 
             // Add strategy once to new row

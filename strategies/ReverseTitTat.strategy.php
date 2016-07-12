@@ -6,12 +6,13 @@ class ReverseTitTat extends Strategy implements Interface_Strategy
     public function getMove($iteration, Interface_Strategy $opponent)
     {
         $history = $this->getHistory($opponent);
-        if (!$history[$iteration - 1] instanceof Move) {
+        $k = $iteration - 1;
+        if (!isset($history[$k]) || !$history[$k] instanceof Move) {
             return new Move(Move::MOVE_DEFECT);
         }
 
         // Last opps move
-        $move = $history[$iteration - 1];
+        $move = $history[$k];
         if ($move->getMove() === Move::MOVE_DEFECT) {
             return new Move(Move::MOVE_COOP);
 
@@ -19,4 +20,3 @@ class ReverseTitTat extends Strategy implements Interface_Strategy
         return new Move(Move::MOVE_DEFECT);
     }
 }
-

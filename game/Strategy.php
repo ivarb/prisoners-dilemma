@@ -62,7 +62,7 @@ abstract class Strategy
     }
 
     public function preMove(){}
-    public function postMove(){}
+    public function postMove(Interface_Strategy $opponent, Move $move){}
 
     private function generateId()
     {
