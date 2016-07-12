@@ -418,14 +418,15 @@ class Game
     private function getRoundOpponent($world, $x, $y, $strategy, $roundData)
     {
         $max  = $this->world->getLength() * $this->world->getLength();
-        $xPos = $yPos = range(0, $this->world->getLength() - 1);
+        $worldLength = $this->world->getLength();
+        $xPos = $yPos = range(0, $worldLength - 1);
         shuffle($xPos);
         shuffle($yPos);
 
-        for($i=0; $i < $this->world->getLength(); $i++) {
+        for($i=0; $i < $worldLength; $i++) {
             $ox = $xPos[$i];
 
-            for($j=0; $j < $this->world->getLength(); $j++) {
+            for($j=0; $j < $worldLength; $j++) {
                 $oy = $yPos[$j];
 
                 // echo '      {Testing opponent at pos ' . $ox .', '.$oy.' } <br />';
