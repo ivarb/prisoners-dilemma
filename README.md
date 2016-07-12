@@ -2,8 +2,7 @@
 
 # Installation
 
-1) fork
-2) clone
-3) maybe write some additional strategies
-4) adjust iterations and strategies tweak factors and game mode in index.php (not necessary)
-5) browse to http://yourlocalhost/prisoners-dilemma/
+1) Clone this repository.
+2) Run the app via PHP's build-in webserver from the project's root: `php -S localhost:8000`.
+
+Visit the app at [http://localhost:8000].
