@@ -8,3 +8,5 @@
 Visit the app at [http://localhost:8000].
 
 # Tweak The Game
+
+Tweak the constants defined in the top section of `index.php` to alter the Game state.
